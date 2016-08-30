@@ -37,4 +37,7 @@ public class AutodiscoveryKurentoClientProvider implements KurentoClientProvider
   public boolean destroyWhenUnused() {
     return true;
   }
+
+  @Override
+  public String getRecordingUrl(String roomName) { return null; }
 }

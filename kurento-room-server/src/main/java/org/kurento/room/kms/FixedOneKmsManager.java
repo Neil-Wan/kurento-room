@@ -30,4 +30,7 @@ public class FixedOneKmsManager extends KmsManager {
       this.addKms(new Kms(KurentoClient.create(kmsWsUri), kmsWsUri));
     }
   }
+
+  @Override
+  public String getRecordingUrl(String roomName) { return null; }
 }
