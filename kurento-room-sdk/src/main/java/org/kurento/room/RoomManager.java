@@ -835,6 +835,8 @@ public class RoomManager {
       // + roomName
       // + "' already exists (has just been created by another thread)");
     }
+    String recordingUrl = kcProvider.getRecordingUrl(roomName);
+    room.setRecordingUrl(recordingUrl);
     String kcName = "[NAME NOT AVAILABLE]";
     if (kurentoClient.getServerManager() != null) {
       kcName = kurentoClient.getServerManager().getName();

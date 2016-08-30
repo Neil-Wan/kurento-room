@@ -23,12 +23,17 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import org.kurento.client.Composite;
 import org.kurento.client.Continuation;
 import org.kurento.client.ErrorEvent;
 import org.kurento.client.EventListener;
+import org.kurento.client.HubPort;
 import org.kurento.client.IceCandidate;
 import org.kurento.client.KurentoClient;
+import org.kurento.client.MediaProfileSpecType;
 import org.kurento.client.MediaPipeline;
+import org.kurento.client.MediaType;
+import org.kurento.client.RecorderEndpoint;
 import org.kurento.room.api.RoomHandler;
 import org.kurento.room.exception.RoomException;
 import org.kurento.room.exception.RoomException.Code;
@@ -52,6 +57,10 @@ public class Room {
   private MediaPipeline pipeline;
   private CountDownLatch pipelineLatch = new CountDownLatch(1);
 
+  private String recordingUrl;
+  private Composite composite;
+  private RecorderEndpoint recorderEP;
+
   private KurentoClient kurentoClient;
 
   private RoomHandler roomHandler;
@@ -72,6 +81,10 @@ public class Room {
     this.destroyKurentoClient = destroyKurentoClient;
     this.roomHandler = roomHandler;
     log.debug("New ROOM instance, named '{}'", roomName);
+  }
+
+  public void setRecordingUrl(String recordingUrl) {
+    this.recordingUrl = recordingUrl;
   }
 
   public String getName() {
@@ -123,6 +136,13 @@ public class Room {
 
     log.debug("ROOM {}: Virtually subscribed other participants {} to new publisher {}", name,
         participants.values(), participant.getName());
+
+    if(composite != null)
+    {
+      HubPort hubport = new HubPort.Builder(composite).build();
+      participant.getPublisher().connect(hubport, MediaType.AUDIO);
+      log.debug("*******************new publisher {}**************", participant);
+    }
   }
 
   public void cancelPublisher(Participant participant) {
@@ -200,6 +220,11 @@ public class Room {
       }
 
       participants.clear();
+      if(recorderEP != null)
+      {
+        log.debug("*******************stop recording {}**************", recorderEP);
+        recorderEP.stopAndWait();
+      }
 
       closePipeline();
 
@@ -271,6 +296,17 @@ public class Room {
             pipeline = result;
             pipelineLatch.countDown();
             log.debug("ROOM {}: Created MediaPipeline", name);
+
+            if(recordingUrl != null)
+            {
+              log.debug("*******************setup recording {}**************", recordingUrl);
+              composite = new Composite.Builder(pipeline).build();
+              recorderEP = new RecorderEndpoint.Builder(pipeline, recordingUrl).withMediaProfile(MediaProfileSpecType.WEBM_AUDIO_ONLY).build();;
+              HubPort recordHubPort = new HubPort.Builder(composite).build();
+              recordHubPort.connect(recorderEP, MediaType.AUDIO);
+              recorderEP.record();
+              log.debug("*******************success setup recording {}**************", recordingUrl);
+            }
           }
 
           @Override

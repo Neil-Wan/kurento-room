@@ -41,4 +41,6 @@ public interface KurentoClientProvider {
   KurentoClient getKurentoClient(KurentoClientSessionInfo sessionInfo) throws RoomException;
 
   boolean destroyWhenUnused();
+
+  String getRecordingUrl(String roomName);
 }
