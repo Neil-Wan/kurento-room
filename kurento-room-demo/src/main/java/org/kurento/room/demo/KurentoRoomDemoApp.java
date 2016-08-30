@@ -85,7 +85,8 @@ public class KurentoRoomDemoApp extends KurentoRoomServerApp {
 
   @Override
   public JsonRpcUserControl userControl() {
-    DemoJsonRpcUserControl uc = new DemoJsonRpcUserControl(roomManager());
+    DemoJsonRpcUserControl uc = new DemoJsonRpcUserControl(roomManager(), notificationService()
+            , kmsManager());
     String appServerUrl = System.getProperty("app.server.url", DEFAULT_APP_SERVER_URL);
     String hatUrl;
     if (appServerUrl.endsWith("/")) {
